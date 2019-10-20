@@ -1,0 +1,5 @@
+black>=19.3b0
+numpy>=1.14.0
+Pillow>=5.0.0
+PyQt5>=5.10
+wxPython>=4.0.0
