@@ -208,34 +208,6 @@ _config = type(
         "contentsep": "||||",
         # Cache file who may contains the Tesseract binary path (absolute)
         "pathfile": ".TESSPATH",
-        # List of directories where "locate" function must look into
-        "searchpaths": {
-            # Let's assume that we use Tesseract's version based on our architecture
-            # (Tesseract 32bit on Windows x86 and Tesseract 64bit on Windows x64)
-            "win": (
-                "{program_files}\\Tesseract-OCR",
-                "{program_files}\\Tesseract",
-                "{drive}:\\Tesseract-OCR",
-                "{drive}:\\Tesseract",
-            ),
-            "mac": ("{home}/tesseract-ocr"),
-            "nix": (
-                "/usr/bin",
-                "/usr/share/tesseract-ocr",
-                "/usr/local/share/tesseract-ocr",
-            ),
-        },
-        # List of terminal commands to execute on each platform
-        # to locate the Tesseract binary
-        "terminalcommand": {
-            # We can't search on the entire system on Windows (or it will takes forever),
-            # we're going to scan only the "Program Files" directory
-            # and all his subdirectories.
-            # NOTE: 'where' command is NOT available on XP and below.
-            "win": "where /r '{search_path}' tesseract.exe",
-            "mac": "find / -name tesseract 2>/dev/null",
-            "nix": "find / -name tesseract -perm /a=x 2>/dev/null",
-        },
         # Windows Tesseract registry key path (HKEY_LOCAL_MACHINE)
         "winregkey": "SOFTWARE\Tesseract-OCR",
     },
@@ -576,22 +548,17 @@ def image_to_string(
     return result
 
 
-def locate(full_scan=True):
+def locate():
     result = None
 
     # Locate sub functions: fastest to slowest
     loc_func = {
         # key, Windows only?, function
         "cache": (False, _locate_from_cache_file),
-        "registry": (True, _locate_from_registry),
-        "disk": (False, _locate_from_disk),
-        "terminal": (False, _locate_from_terminal),
+        "registry": (True, _locate_from_registry)
     }
 
     for key, value in loc_func.items():
-        if not full_scan and key == "terminal":
-            continue
-
         win_only, func = value
 
         if win_only and not _platform.windows:
@@ -631,11 +598,11 @@ def run(command=None, silent=False):
     return _proc_exec_wait(command, silent)
 
 
+start = run
+
+
 def runnable():
     return tesseract_version() is not None
-
-
-start = run
 
 
 def tesseract_version():
@@ -691,77 +658,6 @@ def clear_temp(remove_all=True):
 def _locate_from_cache_file():
     path_file = os.path.join(_get_temp_dir(), _config.pathfile)
     return _read_file(path_file) if os.path.isfile(path_file) else None
-
-
-def _locate_from_disk():
-    result = None
-    search_paths = ()
-
-    if _platform.windows:
-        search_paths = _config.searchpaths["win"]
-    elif _platform.macos:
-        search_paths = _config.searchpaths["mac"]
-    elif _platform.linux:
-        search_paths = _config.searchpaths["nix"]
-
-    for path in search_paths:
-        # <path><path_sep>tesseract<extension>
-        tess_path = "{0}{1}{2}{3}".format(
-            path,
-            os.path.sep if not os.path.sep in path[len(path) - 1] else "",
-            "tesseract",
-            ".exe" if _platform.windows else "",
-        )
-
-        if "{home}" in tess_path:
-            tess_path = tess_path.format(home=str(Path.home()))
-
-        if _platform.windows:
-            if "{drive}" in tess_path:
-                found_paths = _check_path_in_drives(tess_path, True)
-
-                if found_paths:
-                    tess_path = found_paths[0]
-
-            if "{program_files}" in tess_path:
-                tess_path = tess_path.format(
-                    program_files=str(os.environ["PROGRAMFILES"])
-                )
-
-        if os.path.isfile(tess_path):
-            result = tess_path
-            break
-
-    return result
-
-
-def _locate_from_terminal():
-    result = None
-    command = []
-
-    if _platform.windows:
-        command.append(
-            _config.terminalcommand["win"].format(
-                search_path=os.environ["PROGRAMFILES"]
-            )
-        )
-    elif _platform.macos:
-        command.append(_config.terminalcommand["mac"])
-    elif _platform.linux:
-        command.append(_config.terminalcommand["nix"])
-
-    for cmd in command:
-        status, output, error = _proc_exec_wait(cmd)
-
-        if status == 0 and output:
-            # Keep only the first path found
-            output = output.strip().splitlines()[0]
-
-            if os.path.isfile(output):
-                result = output
-                break
-
-    return result
 
 
 def _locate_from_registry():
@@ -1087,24 +983,6 @@ def _write_file(filepath, content):
             "_write_file: Could not write the file '{0}'\n"
             "I/O Error ({1}): {2}.".format(filepath, e.errno, e.strerror)
         )
-
-    return result
-
-
-def _check_path_in_drives(searchpath, single_result=True):
-    result = []
-
-    # Gets all existing logical drive(s) from letter A to Z
-    drives = [chr(x) for x in range(65, 90) if os.path.exists(chr(x) + ":\\\\")]
-
-    for drive in drives:
-        path = searchpath.format(drive=drive)
-
-        if os.path.exists(path):
-            result.append(path)
-
-            if single_result:
-                break
 
     return result
 
