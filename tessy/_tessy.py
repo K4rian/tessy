@@ -302,7 +302,7 @@ def configure(**kw):
 
 def init():
     if not runnable():
-        tess_loc = locate(False)
+        tess_loc = locate()
 
         if tess_loc:
             set_command(tess_loc, True)
