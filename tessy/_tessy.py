@@ -216,20 +216,11 @@ _config = type(
 # List of temporary files created by the module
 _tempfiles = []
 
-# Image modules holder
+# Supported image modules holder
 _image_modules = {"pil": None, "wx": None, "qt": None, "cv": None}
 
-# Utility class to determine the running OS platform and architecture
-_platform = type(
-    "OSPlatform",
-    (object,),
-    {
-        "x64": (sys.maxsize > 2 ** 32),
-        "linux": ("linux" in platform.system()),
-        "windows": (platform.system().lower() == "windows"),
-        "macos": (platform.system().lower() == "darwin"),
-    },
-)
+# Equals true if the system's OS is a Windows-based OS
+_platform_windows = platform.system().lower() == "windows"
 
 
 def command():
@@ -422,7 +413,7 @@ def image_to_file(
         # On Windows, encloses any path/command who contains space(s)
         # On Linux/MacOS, prefix any space with a backslash
         escape_path = lambda s: (
-            '"{0}"'.format(s) if _platform.windows else s.replace(" ", "\ ")
+            '"{0}"'.format(s) if _platform_windows else s.replace(" ", "\ ")
         )
 
         if " " in in_file or " " in out_file:
@@ -445,6 +436,9 @@ def image_to_file(
                     "Extra parameter(s) will be ignored.\nError: {0}.".format(e)
                 )
 
+        if "osd" in output_format and not "--psm" in command:
+            command += ["--psm", "0"]
+        
         # Adds the given language(s)
         # 'lang' can be a string, a tuple/list of string
         # a TessyLang instance or a tuple/list of TessyLang instances
@@ -561,7 +555,7 @@ def locate():
     for key, value in loc_func.items():
         win_only, func = value
 
-        if win_only and not _platform.windows:
+        if win_only and not _platform_windows:
             continue
 
         loc = func()
@@ -873,7 +867,7 @@ def _proc_exec_wait(command_line, silent=False):
     proc = None
 
     try:
-        if _platform.windows:
+        if _platform_windows:
             command = command_line.replace("\\", "/")
 
         command = shlex.split(command)
@@ -892,7 +886,7 @@ def _proc_exec_wait(command_line, silent=False):
             "env": os.environ,
         }
 
-        if _platform.windows:
+        if _platform_windows:
             sp_kwargs["startupinfo"] = subprocess.STARTUPINFO()
             sp_kwargs["startupinfo"].dwFlags = (
                 subprocess.CREATE_NEW_CONSOLE | subprocess.STARTF_USESHOWWINDOW
@@ -923,7 +917,7 @@ def _proc_exec_wait(command_line, silent=False):
 def _get_temp_dir():
     result = tempfile.gettempdir()
 
-    if not _platform.windows:
+    if not _platform_windows:
         preserved_tempdir = "/var/tmp"
 
         if os.path.isdir(preserved_tempdir):
