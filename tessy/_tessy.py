@@ -20,6 +20,12 @@ from distutils.version import LooseVersion
 from enum import Enum
 from pathlib import Path
 
+XMLTODICT_INSTALLED = importlib.util.find_spec("xmltodict") is not None
+
+if XMLTODICT_INSTALLED:
+    import json
+    import xmltodict
+
 
 # -------------------------------------------------------------------
 # TessyLang
@@ -195,6 +201,10 @@ TessyWarning = type("TessyWarning", (Warning,), {})
 # -------------------------------------------------------------------
 Lang = TessyLang
 
+DataOutput = type(
+    "TessyDataOutput", (object,), {"BYTES": "bytes", "STRING": "str", "DICT": "dict"}
+)
+
 _config = type(
     "TessyConfig",
     (object,),
@@ -307,7 +317,7 @@ def init():
 def image_to_file(
     image, output_filename_base=None, output_format="txt", lang=None, config=None
 ):
-    result = False
+    result = []
 
     # Checks if the Tesseract data directory has been specified somewhere
     data_arg_given = config and "--tessdata-dir" in config
@@ -324,7 +334,7 @@ def image_to_file(
             "You can specify the location of tessdata path by:\n"
             " - Calling the 'set_data_dir(<PATH>)' function of this module,\n"
             " - Adding the '--tessdata-dir <PATH>' parameter using the 'config' "
-            "variable when calling 'image_to_file' or 'image_to_string',\n"
+            "variable when calling any 'image_to' function,\n"
             " - Adding the 'TESSDATA_PREFIX' environment variable in your OS."
             ""
         )
@@ -351,12 +361,12 @@ def image_to_file(
         # All format must be in lowercase
         output_format = tuple(fmt.strip().lower() for fmt in output_format)
     else:
-        # Uses default txt format if the given format is undefined/unsupported
+        # The given format is undefined/unsupported
         _warn(
             "image_to_file: Unsupported output format. 'output_format' "
-            "must be a string, a list or a tuple. The default format (txt) will be used."
+            "must be a string, a list or a tuple."
         )
-        output_format = ("txt",)
+        return result
 
     # If 'image' is a string (who should contains the input file path),
     # just copy the image file at the input temp file location
@@ -383,7 +393,7 @@ def image_to_file(
                 "image_to_file: Unsupported image. 'image' must be an PIL "
                 "Image, wxPython Image, PyQt/PySide QImage or OpenCV Image (ndarray)."
             )
-            return False
+            return result
 
         # Try to import the corresponding image module
         img_mod = _import_image_module(img_lib_name)
@@ -393,7 +403,7 @@ def image_to_file(
                 "image_to_file: Import Error: Unable to import the "
                 "image module from the lib {0}.".format(img_lib_plain_name)
             )
-            return False
+            return result
 
         # Prepare the image using the imported module
         _prepare_image(image, img_lib_name, img_mod, in_file)
@@ -410,18 +420,12 @@ def image_to_file(
         # Make a unaltered copy of the output filename
         out_file_clean = out_file
 
-        # On Windows, encloses any path/command who contains space(s)
-        # On Linux/MacOS, prefix any space with a backslash
-        escape_path = lambda s: (
-            '"{0}"'.format(s) if _platform_windows else s.replace(" ", "\ ")
-        )
+        if " " in tess_cmd:
+            tess_cmd = _escape_path(tess_cmd)
 
         if " " in in_file or " " in out_file:
-            in_file = escape_path(in_file)
-            out_file = escape_path(out_file)
-
-        if " " in tess_cmd:
-            tess_cmd = escape_path(tess_cmd)
+            in_file = _escape_path(in_file)
+            out_file = _escape_path(out_file)
 
         # Build the standard command
         command = [tess_cmd, in_file, out_file]
@@ -438,9 +442,9 @@ def image_to_file(
 
         if "osd" in output_format and not "--psm" in command:
             command += ["--psm", "0"]
-        
+
         # Adds the given language(s)
-        # 'lang' can be a string, a tuple/list of string
+        # 'lang' can be a string, a tuple/list of string,
         # a TessyLang instance or a tuple/list of TessyLang instances
         if lang:
             if isinstance(lang, TessyLang):
@@ -492,7 +496,7 @@ def image_to_file(
 
             if output_files:
                 _tempfiles.extend(output_files)
-                result = tuple(output_files)
+                result.extend(output_files)
         # Tesseract raised error(s)
         else:
             errors = _parse_errors(err_string)
@@ -506,9 +510,49 @@ def image_to_file(
     return result
 
 
-def image_to_string(
-    image, output_filename_base=None, output_format="txt", lang=None, config=None
+def image_to_data(
+    image, output_format="txt", data_output=DataOutput.STRING, lang=None, config=None
 ):
+    result = None
+
+    # PDF format is not supported by this function
+    if output_format and "pdf" in output_format:
+        _warn(
+            "image_to_data: PDF format is not supported by this function, "
+            "use 'image_to_file' instead."
+        )
+        return result
+
+    # Call 'image_to_file' function to get the output file(s) list
+    out_files = image_to_file(image, None, output_format, lang, config)
+
+    if out_files and len(out_files) > 0:
+        result = []
+
+        todict_func = {
+            "txt": lambda d: {"data": d},
+            "tsv": lambda d: sv_to_dict(d),
+            "box": lambda d: boxes_to_dict(d),
+            "hocr": lambda d: hocr_to_dict(d),
+            "osd": lambda d: osd_to_dict(d),
+        }
+
+        for fp in out_files:
+            file_data = _read_file(fp, data_output == DataOutput.BYTES)
+            file_ext = os.path.splitext(fp)[1][1:]
+
+            if file_data:
+                if data_output == DataOutput.DICT:
+                    file_data = todict_func[file_ext](file_data)
+
+                result.append(file_data)
+
+        clear_temp(False)
+
+    return result
+
+
+def image_to_string(image, output_format="txt", lang=None, config=None):
     result = None
 
     # PDF format is not supported by this function
@@ -519,25 +563,12 @@ def image_to_string(
         )
         return result
 
-    # Call the 'image_to_file' function to get the output file(s) list
-    # or False if the function fail
-    out_files = image_to_file(image, output_filename_base, output_format, lang, config)
+    # Call 'image_to_data' function to get the output data list
+    out_datas = image_to_data(image, output_format, DataOutput.STRING, lang, config)
 
-    if out_files:
-        file_count = len(out_files)
-
-        if file_count > 0:
-            result = ""
-
-            for index, fp in enumerate(out_files):
-                file_content = _read_file(fp)
-
-                if file_content:
-                    result += file_content
-
-                if file_count > 1 and index < (file_count - 1):
-                    # Adds multiple content separator
-                    result += _config.contentsep
+    if out_datas:
+        result = _config.contentsep.join(out_datas)
+        clear_temp(False)
 
     return result
 
@@ -605,9 +636,8 @@ def tesseract_version():
     try:
         command = _config.command
 
-        # Enclose the whole path by double-quotes if it contains any space
         if " " in command:
-            command = '"{0}"'.format(command)
+            command = _escape_path(command)
 
         command += " --version"
         status, output, err_string = _proc_exec_wait(command, True)
@@ -615,7 +645,10 @@ def tesseract_version():
         if status == 0:
             result = LooseVersion(output.split()[1].lstrip(string.printable[10:]))
     except Exception as e:
-        _warn("tesseract_version: Unable to retrieve Tesseract version. Error: {0}".format(e))
+        _warn(
+            "tesseract_version: Unable to retrieve Tesseract "
+            "version. Error: {0}".format(e)
+        )
 
     return result
 
@@ -646,7 +679,74 @@ def clear_temp(remove_all=True):
             _remove_file(tf)
 
 
-# ----------------------------
+def sv_to_dict(sv_data, cell_delimiter="\t"):
+    result = {}
+    rows = [row.split(cell_delimiter) for row in sv_data.splitlines()]
+
+    if rows:
+        header = rows.pop(0)
+        header_len = len(header)
+
+        for idx, header_col in enumerate(header):
+            result[header_col] = []
+
+            for row in rows:
+                # Makes sure all rows size equals header's size
+                if len(row) < header_len:
+                    [row.append("") for x in range(0, (header_len - len(row)))]
+
+                row_val = int(row[idx]) if row[idx].isdigit() else row[idx]
+                result[header_col].append(row_val)
+
+    return result
+
+
+def boxes_to_dict(boxes_data):
+    boxes_data = "{0}\n{1}".format("char left bottom right top page", boxes_data)
+
+    return sv_to_dict(boxes_data, " ")
+
+
+def hocr_to_dict(hocr_data):
+    result = {}
+
+    if not XMLTODICT_INSTALLED:
+        _warn(
+            "hocr_to_dict: Unable to parse hocr data: The 'xmltodict' module is missing."
+            "Ensure to install it using `pip install -U xmltodict` before calling "
+            "this function"
+        )
+    else:
+        try:
+            result = json.dumps(xmltodict.parse(hocr_data), indent=4)
+        except (Exception, ValueError) as e:
+            _warn("hocr_to_dict: Unable to parse hocr data: {0}.".format(e))
+
+    return result
+
+
+def osd_to_dict(osd_data):
+    result = {}
+
+    def _conv_prop_value(s):
+        cresult = s
+        if s.isdigit() or "." in s:
+            try:
+                cresult = float(s) if "." in s else int(s)
+            except ValueError:
+                pass
+        elif "nan" in s.lower():
+            cresult = None
+        return cresult
+
+    data = [line.strip().split(": ") for line in osd_data.splitlines()]
+
+    for prop in data:
+        prop_key = prop[0].lower().strip().replace(" ", "_")
+        prop_value = _conv_prop_value(prop[1])
+        result[prop_key] = prop_value
+
+    return result
 
 
 def _locate_from_cache_file():
@@ -656,18 +756,17 @@ def _locate_from_cache_file():
 
 def _locate_from_registry():
     result = None
-    key_path = _config.winregkey
 
     try:
         registry = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
 
-        with winreg.OpenKey(registry, key_path) as key:
+        with winreg.OpenKey(registry, _config.winregkey) as key:
             key_val = winreg.QueryValueEx(key, "Path")
             result = "{0}\\tesseract.exe".format(key_val[0])
-    except Exception as e:
+    except OSError as e:
         _warn(
             "_locate_from_registry: Could not open the registry key: "
-            "'{0}'. Error: {1}".format(key_path, e)
+            "'{0}'. Error: {1}".format(_config.winregkey, e)
         )
 
     return result
@@ -979,6 +1078,13 @@ def _write_file(filepath, content):
         )
 
     return result
+
+
+def _escape_path(path):
+    # - On Windows encloses the path if it contains space(s)
+    # - On Linux/MacOS prefix any space with a backslash
+    path = path.strip()
+    return '"{0}"'.format(path) if _platform_windows else path.replace(" ", "\ ")
 
 
 def _parse_errors(error_string):

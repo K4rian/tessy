@@ -1,5 +1,6 @@
 from ._tessy import (
     Lang,
+    DataOutput,
     command,
     set_command,
     data_dir,
@@ -9,6 +10,7 @@ from ._tessy import (
     configure,
     init,
     image_to_file,
+    image_to_data,
     image_to_string,
     locate,
     run,
@@ -16,6 +18,10 @@ from ._tessy import (
     tesseract_version,
     clear_cache,
     clear_temp,
+    sv_to_dict,
+    boxes_to_dict,
+    hocr_to_dict,
+    osd_to_dict,
 )
 
 VERSION = "0.5"
