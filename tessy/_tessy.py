@@ -580,7 +580,7 @@ def locate():
     loc_func = {
         # key, Windows only?, function
         "cache": (False, _locate_from_cache_file),
-        "registry": (True, _locate_from_registry)
+        "registry": (True, _locate_from_registry),
     }
 
     for key, value in loc_func.items():
@@ -848,7 +848,7 @@ def _import_image_module(mn):
 def _prepare_image(image, img_lib_name, img_mod, img_save_path):
     # The procedure is the same for each lib:
     # - Make a clone of the given image to avoid modifications of the original object
-    # - Remove/clear the alpha channel (if exists)
+    # - Remove/replace the alpha channel (if exists)
     # - Save the cloned image at the given save path location
     # - Delete the cloned image object
 
@@ -934,7 +934,12 @@ def _prepare_image(image, img_lib_name, img_mod, img_save_path):
 
         try:
             if len(cv_image.shape) > 2 and cv_image.shape[2] == 4:
-                cv_image = cv_image[:, :, :3]
+                rt, th = img_mod.threshold(
+                    cv_image[:, :, 3], 254, 255, img_mod.THRESH_BINARY
+                )
+                cv_image = img_mod.bitwise_not(
+                    img_mod.bitwise_not(cv_image[:, :, :3], mask=th)
+                )
 
             if img_mod.imwrite(img_save_path_bmp, cv_image):
                 try:
