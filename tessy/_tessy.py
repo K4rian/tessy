@@ -31,6 +31,11 @@ if XMLTODICT_INSTALLED:
 # TessyLang
 # -------------------------------------------------------------------
 class TessyLang(Enum):
+    """
+    `TessyLang` enumerates all supported languages by `Tesseract`.
+
+    This class can only be accessed through the `tessy.Lang` variable.
+    """
 
     AFRIKAANS = "afr"
     AMHARIC = "amh"
@@ -147,21 +152,35 @@ class TessyLang(Enum):
     YIDDISH = "yid"
 
     @classmethod
+    def all(cls):
+        """
+        Returns a key-value pair list of all available languages.
+        """
+        return [(k, v) for k, v in cls.__members__.items()]
+
+    @classmethod
     def contains(cls, value):
+        """
+        Returns `True` if the given value equals any existing language value.
+        """
         return any(value == item.value for item in cls)
 
     @classmethod
     def join(cls, *args):
+        """
+        Returns an string in which each given languages have been joined by 
+        the `+` separator.
+        """
         result = []
 
         if len(args) > 0:
             if isinstance(args[0], (list, tuple)):
-                return TessyLang.join(*args[0])
+                return cls.join(*args[0])
 
             langs = []
 
             for lang in args:
-                if isinstance(lang, TessyLang):
+                if isinstance(lang, cls):
                     lang = lang.value
                 elif isinstance(lang, str):
                     lang = lang.strip()
@@ -172,9 +191,9 @@ class TessyLang(Enum):
                     )
                     continue
 
-                if not TessyLang.contains(lang):
+                if not cls.contains(lang):
                     raise ValueError(
-                        "join: The given language '{0}' doesn't exists "
+                        "join: The given language '{0}' doesn't exist "
                         "or not supported yet.".format(lang)
                     )
                     continue
@@ -186,7 +205,17 @@ class TessyLang(Enum):
 
         return result
 
+    @classmethod
+    def print_all(cls):
+        """
+        Prints the key-value pairs of all available languages in the console.
+        """
+        [print('{0} = "{1}"'.format(k, v)) for (k, v) in cls.all()]
+
     def __str__(self):
+        """
+        Returns the string representation of the current enumerated value.
+        """
         return str(self.value)
 
 
@@ -213,10 +242,10 @@ _config = type(
         "command": "tesseract",
         # Tesseract date directory path (absolute)
         "datadir": None,
-        # Content separator used when multiple files content are merged
+        # Content separator used when multiple file content are merged
         # into a single string
         "contentsep": "||||",
-        # Cache file who may contains the Tesseract binary path (absolute)
+        # Cache file who may contain the Tesseract binary path (absolute)
         "pathfile": ".TESSPATH",
         # Windows Tesseract registry key path (HKEY_LOCAL_MACHINE)
         "winregkey": "SOFTWARE\Tesseract-OCR",
@@ -229,15 +258,32 @@ _tempfiles = []
 # Supported image modules holder
 _image_modules = {"pil": None, "wx": None, "qt": None, "cv": None}
 
-# Equals true if the system's OS is a Windows-based OS
+# Equals True if the system's OS is a Windows-based OS
 _platform_windows = platform.system().lower() == "windows"
 
 
 def command():
+    """ 
+    Returns the `Tesseract` command.
+
+    Returned value can be either the command itself or the binary path.
+
+    *Default:* `tesseract`
+    """
     return _config.command
 
 
 def set_command(cmd, check_runnable=False, write_cache=False):
+    """ 
+    Sets the `Tesseract` command.
+
+    > If __`check_runnable`__ is set to `True`, the function will check if the given command 
+    > is runnable by starting a new process.
+
+    > If __`write_cache`__ is set to `True`, the given command will be stored in a special 
+    > file located in the temporary directory to helps `tessy` to locate Tesseract when the 
+    > __[init](@@$init)__ function is called.
+    """
     if cmd:
         _config.command = cmd.strip()
 
@@ -253,10 +299,23 @@ def set_command(cmd, check_runnable=False, write_cache=False):
 
 
 def data_dir():
+    """ 
+    Returns the `Tesseract` data directory.
+
+    *Default:* `None`
+    """
     return _config.datadir
 
 
 def set_data_dir(datadir, update_env=True):
+    """ 
+    Sets the location of the `Tesseract` data directory.
+
+    > `datadir` must be an absolute path.
+
+    > If __`update_env`__ is set to `True`, the `TESSDATA_PREFIX` environment variable
+    > will be set using __`datadir`__'s value.
+    """
     if os.path.isdir(datadir):
         _config.datadir = datadir
 
@@ -267,10 +326,22 @@ def set_data_dir(datadir, update_env=True):
 
 
 def content_sep():
+    """ 
+    Returns the content separator. 
+
+    > The content separator is used as delimiter when multiple string are joined  
+    > in the functions __[image_to_string](@@$image_to_string)__ and
+    > __[image_to_data](@@$image_to_data)__.
+
+    *Default:* `||||`
+    """
     return _config.contentsep
 
 
 def set_content_sep(sep):
+    """ 
+    Sets the content separator. 
+    """
     if sep:
         _config.contentsep = sep
     else:
@@ -278,15 +349,41 @@ def set_content_sep(sep):
 
 
 def configure(**kw):
+    """ 
+    All-in-one function to set the `command`, the `data directory` or/and the 
+    `content separator`.
+
+    *Supported keywords*: `command`, `data_dir`, `content_sep`
+
+    *Example usage*:                         
+    ```python
+    configure(command="tesseract", content_sep="~")
+    ```
+
+    *Example usage with packed parameters as list/tuple*:           
+    ```python
+    configure(command=("tesseract", True), data_dir=("/home/tess/data", True))
+    ```
+
+    See __[set_command](@@$set_command)__, __[set_data_dir](@@$set_data_dir)__ 
+    and __[set_content_sep](@@$set_content_sep)__ functions documentation for 
+    more details about the parameters.
+    """
     result = True
     invalid_args = []
 
     if kw:
         for k, v in kw.items():
             if "command" in k:
-                set_command(v)
+                if isinstance(v, (list, tuple)):
+                    set_command(*v)
+                else:
+                    set_command(v)
             elif "data_dir" in k:
-                set_data_dir(v)
+                if isinstance(v, (list, tuple)):
+                    set_data_dir(*v)
+                else:
+                    set_data_dir(v)
             elif "content_sep" in k:
                 set_content_sep(v)
             else:
@@ -302,6 +399,15 @@ def configure(**kw):
 
 
 def init():
+    """ 
+    Inits the module by performing some verifications.
+
+    - Checks if the `Tesseract` command is valid by trying to start a new process using
+    the `runnable` function. If the command fails, it will try to locate the `Tesseract` 
+    binary by calling the __[locate](@@$locate)__ function.
+    - Checks if the `Tesseract` data directory has been set by calling the 
+    __[locate_data](@@$locate_data)__ function.
+    """
     if not runnable():
         tess_loc = locate()
 
@@ -317,18 +423,74 @@ def init():
 def image_to_file(
     image, output_filename_base=None, output_format="txt", lang=None, config=None
 ):
+    """ 
+    Extracts any text from the given image and return a list containing a unique file 
+    name for each specified format.
+
+    > __`image`__ can be either:
+    > - an `string` containing the absolute path to an image or a text file containing
+    > multiple absolute image paths.
+    > - an Pillow `Image`.
+    > - an wxPython `Image`.
+    > - an PyQt4/PyQt5/PySide `QImage`.
+    > - an OpenCV `NumPy ndarray`.
+
+    > __`output_filename_base`__ may contain the file name __without extension__ used 
+    > as reference for any output file generated by Tesseract.
+    >
+    > *e.g.*: If `/home/tess/myimage` is given, the `/home/tess` directory may contain 
+    > the files `myimage.txt`, `myimage.tsv`, etc.
+    >
+    > If __`output_filename_base`__ is set to `None`, all file(s) will be using the same 
+    > random name as reference and will be saved in the OS's temporary directory.
+
+    > __`output_format`__ contains one or more output format(s) who will be processed by 
+    > `Tesseract`.
+    >
+    > *Supported formats*: `txt`, `box`, `pdf`, `hocr`, `tsv`, `osd`
+    >
+    > __`output_format`__ can be either:
+    > - an `string` containing one or more format(s) delimited by a comma `,`
+    > - a `list`/`tuple` of `string`
+    >
+    > *e.g.*: `"txt"`, `"txt, tsv, box"`, `("pdf", "hocr")`, `["txt", "box"]`
+    >
+    > __*Note*: If the `osd` format is present, `Tesseract` will only process this 
+    > format and, thus, return a single file even if multiple formats are provided
+    > in `output_format`__.
+
+    > __`lang`__ may contain one or more supported language(s).
+    >
+    > __`lang`__ can be either:
+    > - an `string` containing one or more languages delimited by a plus sign `+`
+    > - a `list`/`tuple` of `string`
+    > - a `TessyLang` enum
+    > - a `list`/`tuple` of `TessyLang` enums
+    >           
+    > *e.g.*: `"deu"`, `"eng+fra"`, `["eng", "fra", "deu"]`, `tessy.Lang.CZECH`, 
+    > `[tessy.Lang.DANISH, tessy.Lang.TURKISH]`
+    >
+    > If __`lang`__ is set to `None`, `Tesseract` will process the image using the 
+    > English language value (`"eng"`) as default.
+    >
+    > __Check the [TessyLang](@@$Lang) class documentation to get the list
+    > of all supported languages__.
+
+    > __`config`__ may contain extra parameter(s) added to the `Tesseract` command.
+    >
+    > __`config`__ must be an string and each parameter must be delimited by a space.
+    >
+    > *e.g.*: `"--oem 0 --psm 6"`
+    """
     result = []
 
     # Checks if the Tesseract data directory has been specified somewhere
-    data_arg_given = config and "--tessdata-dir" in config
-
     if (
         not _config.datadir
-        and not data_arg_given
+        and not (config and "--tessdata-dir" in config)
         and not "TESSDATA_PREFIX" in os.environ
     ):
         _warn(
-            ""
             "image_to_file: The Tesseract data directory path hasn't been specified, "
             "the command may fail.\n"
             "You can specify the location of tessdata path by:\n"
@@ -336,40 +498,35 @@ def image_to_file(
             " - Adding the '--tessdata-dir <PATH>' parameter using the 'config' "
             "variable when calling any 'image_to' function,\n"
             " - Adding the 'TESSDATA_PREFIX' environment variable in your OS."
-            ""
         )
 
     # Creates a temporary file name for both input and output files
-    in_file = os.path.join(_get_temp_dir(), _get_temp_file_name())
+    in_file = os.path.join(_get_temp_dir(False), _get_temp_file_name())
     out_file = (
-        os.path.join(_get_temp_dir(), _get_temp_file_name())
+        os.path.join(_get_temp_dir(False), _get_temp_file_name())
         if output_filename_base is None
         else output_filename_base
     )
 
-    # 'output_format' can be a string, a list or a tuple
+    # Convert 'output_format' to a tuple
     if isinstance(output_format, str):
-        # Remove all whitespace
         output_format = output_format.lower().replace(" ", "")
 
-        # Converts as a tuple (it may contains multiple formats)
         if "," in output_format:
             output_format = tuple(output_format.split(","))
         else:
             output_format = (output_format,)
     elif isinstance(output_format, (tuple, list)):
-        # All format must be in lowercase
         output_format = tuple(fmt.strip().lower() for fmt in output_format)
     else:
-        # The given format is undefined/unsupported
         _warn(
             "image_to_file: Unsupported output format. 'output_format' "
-            "must be a string, a list or a tuple."
+            "must be an string, a list or a tuple."
         )
         return result
 
-    # If 'image' is a string (who should contains the input file path),
-    # just copy the image file at the input temp file location
+    # If 'image' is an string (who should contain a file path),
+    # just copy the file at the input temp file location
     if isinstance(image, str):
         try:
             shutil.copyfile(image, in_file)
@@ -379,18 +536,18 @@ def image_to_file(
                 "I/O Error ({2}): {3}.".format(image, in_file, e.errno, e.strerror)
             )
 
-    # We must determine which library must to be imported to work
-    # with the given 'image' object
-    # Supported libs: PIL/Pillow, wxPython, PyQt 4/5, PySide and OpenCV
+    # We must determine which library must be imported to work with the given
+    # 'image' object
+    # Supported libs: Pillow, wxPython, PyQt 4/5, PySide and OpenCV
     else:
-        # Gets both library acronym and plain name.
+        # Gets both library acronym and plain name
         # - The acronym is used internally as identifier
         # - The plain name is used for debugging
         img_lib_name, img_lib_plain_name = _get_image_lib_name_from_object(image)
 
         if not img_lib_name:
             _warn(
-                "image_to_file: Unsupported image. 'image' must be an PIL "
+                "image_to_file: Unsupported image. 'image' must be an Pillow "
                 "Image, wxPython Image, PyQt/PySide QImage or OpenCV Image (ndarray)."
             )
             return result
@@ -427,10 +584,10 @@ def image_to_file(
             in_file = _escape_path(in_file)
             out_file = _escape_path(out_file)
 
-        # Build the standard command
+        # Pack the command with both input and output files
         command = [tess_cmd, in_file, out_file]
 
-        # Add any extra user-defined parameters
+        # Adds any extra user-defined parameter(s)
         if config:
             try:
                 command += shlex.split(config)
@@ -444,8 +601,6 @@ def image_to_file(
             command += ["--psm", "0"]
 
         # Adds the given language(s)
-        # 'lang' can be a string, a tuple/list of string,
-        # a TessyLang instance or a tuple/list of TessyLang instances
         if lang:
             if isinstance(lang, TessyLang):
                 lang = TessyLang.join(lang)
@@ -477,7 +632,7 @@ def image_to_file(
         # Converts the command as string
         command_str = " ".join(command)
 
-        # Run the command
+        # Run the command and wait
         status, output, err_string = _proc_exec_wait(command_str)
 
         # The command has been executed successfully
@@ -513,6 +668,22 @@ def image_to_file(
 def image_to_data(
     image, output_format="txt", data_output=DataOutput.STRING, lang=None, config=None
 ):
+    """ 
+    Extracts any text from the given image and return a list containing the converted 
+    data for each specified format.
+
+    > __`data_output`__ specifies the type of output data to be returned for each
+    > given format in __`output_format`__.
+    >
+    > *Supported values*: `DataOutput.BYTES`, `DataOutput.STRING`, `DataOutput.DICT`
+    >
+    > *Default:* `DataOutput.STRING`
+    
+    See __[image_to_file](@@$image_to_file)__ documentation for more details about 
+    __`image`__, __`output_format`__,  __`lang`__ and __`config`__ parameters.
+
+    *Note*: `pdf` output format isn't supported by this function.
+    """
     result = None
 
     # PDF format is not supported by this function
@@ -553,6 +724,15 @@ def image_to_data(
 
 
 def image_to_string(image, output_format="txt", lang=None, config=None):
+    """ 
+    Extracts any text from the given image and return the data as string for each 
+    specified format.
+
+    See __[image_to_file](@@$image_to_file)__ documentation for more details about 
+    __`image`__, __`output_format`__,  __`lang`__ and __`config`__ parameters.
+
+    *Note*: `pdf` output format isn't supported by this function.
+    """
     result = None
 
     # PDF format is not supported by this function
@@ -574,6 +754,16 @@ def image_to_string(image, output_format="txt", lang=None, config=None):
 
 
 def locate():
+    """ 
+    Tries to locate the Tesseract binary and returns its path if found.
+
+    - Checks if the cache file (`.TESSPATH`) is present inside the temporary directory.   
+    If the file is found, its content is read and returned as an string.
+    - (__Windows only__) Tries to read the Tesseract installation directory in the
+    registry. The registry entry only exists if Tesseract has been previously installed
+    using the Windows precompiled setups. If the Tesseract executable is located, its
+    path is returned as an string.
+    """
     result = None
 
     # Locate sub functions: fastest to slowest
@@ -599,6 +789,16 @@ def locate():
 
 
 def locate_data():
+    """ 
+    Tries to locate the Tesseract data directory and returns its path if found.
+
+    - Checks if the `TESSDATA_PREFIX` environement variable has been set and return
+    its value.
+    - Tries to read the Tesseract installation directory in the
+    registry. The registry entry only exists if Tesseract has been previously installed
+    using any Windows precompiled setups. If the Tesseract executable is located, its
+    path is returned as an string.
+    """
     # Locate by using the environment variable
     if "TESSDATA_PREFIX" in os.environ:
         data_prefix = os.environ["TESSDATA_PREFIX"]
@@ -618,19 +818,40 @@ def locate_data():
     return None
 
 
-def run(command=None, silent=False):
-    command = command if command else _config.command
-    return _proc_exec_wait(command, silent)
+def run(parameters=None, silent=False):
+    """ 
+    Run Tesseract with the given parameters and return the output as tuple.
 
+    > __`parameters`__ contains the parameters to pass to Tesseract as string.
+    >
+    > *e.g.*: `"C:\\my-image.png C:\\my-image -l eng+deu box"`
 
-start = run
+    > If __`silent`__ is set to `True`, warning messages won't be logged.
+
+    *Returned values* (3): `status` (returncode/int), `output` (stoutdata/string), 
+    `err_string` (sterrdata/string)
+    """
+    return _proc_exec_wait("{0} {1}".format(_config.command, parameters), silent)
 
 
 def runnable():
+    """ 
+    Returns `True` if the Tesseract's process can be started.
+    """
     return tesseract_version() is not None
 
 
+def start(parameters=None, silent=False):
+    """ 
+    Alias of __[run](@@$run)__
+    """
+    return run(parameters, silent)
+
+
 def tesseract_version():
+    """ 
+    Returns the `LooseVersion` representation of Tesseract's version.
+    """
     result = None
 
     try:
@@ -646,24 +867,32 @@ def tesseract_version():
             result = LooseVersion(output.split()[1].lstrip(string.printable[10:]))
     except Exception as e:
         _warn(
-            "tesseract_version: Unable to retrieve Tesseract "
-            "version. Error: {0}".format(e)
+            "tesseract_version: Unable to retrieve Tesseract version. "
+            "Error: {0}".format(e)
         )
 
     return result
 
 
 def clear_cache():
-    """ Tries to remove the .TESSPATH file."""
+    """ 
+    Tries to remove the `.TESSPATH` cache file and return `True` if successfully deleted.
+    """
     path_file = os.path.join(_get_temp_dir(), _config.pathfile)
     return _remove_file(path_file) if os.path.isfile(path_file) else False
 
 
 def clear_temp(remove_all=True):
+    """ 
+    Removes temporary files created by Tesseract *(excluding the cache file)*.
+
+    > If __`remove_all`__ is set to `True`, all temporary files will be deleted.      
+    > Otherwise, only temporary files created during execution will be deleted.
+    """
     tf_list = []
 
     if remove_all:
-        temp_dir = _get_temp_dir()
+        temp_dir = _get_temp_dir(False)
         temp_dir += (
             os.path.sep if os.path.sep not in temp_dir[len(temp_dir) - 1] else ""
         )
@@ -680,6 +909,32 @@ def clear_temp(remove_all=True):
 
 
 def sv_to_dict(sv_data, cell_delimiter="\t"):
+    """ 
+    Converts and return the given `separated-values` raw data as a dictionary.
+
+    > __`sv_data`__ must contain a header row.
+
+    *SV data sample (separated by a comma)*:
+    ```
+    head1,head2,head3,head4
+    A1,A2,A3,A4
+    B1,B2,B3,B4
+    C1,C2,C3,C4
+    ```
+
+    *Output*: 
+    ```json
+    {
+        "head1": [
+            "A1", "B1", "C1"
+        ],
+        "head2": [
+            "A2", "B2", "C2"
+        ],
+        [...]
+    }
+    ```
+    """
     result = {}
     rows = [row.split(cell_delimiter) for row in sv_data.splitlines()]
 
@@ -702,12 +957,54 @@ def sv_to_dict(sv_data, cell_delimiter="\t"):
 
 
 def boxes_to_dict(boxes_data):
+    """ 
+    Converts and return the given `boxes` data as a dictionary.
+
+    > __`boxes_data`__ __mustn't__ contain a header row.
+
+    *Boxes data sample*:
+    ```
+    w 165 480 209 525 0
+    h 174 478 241 532 0
+    a 217 512 249 552 0
+    ```
+
+    *Output*: 
+    ```json
+    {
+        "char": [
+            "w", "h", "a" 
+        ],
+        "left": [
+            165, 174, 217 
+        ],
+        "bottom": [
+            480, 478, 512
+        ],
+        "right": [
+            209, 241, 249
+        ],
+        "top": [
+             525, 532, 552
+        ],
+        "page": [
+            0, 0, 0
+        ]
+    }
+    ```
+    """
     boxes_data = "{0}\n{1}".format("char left bottom right top page", boxes_data)
 
     return sv_to_dict(boxes_data, " ")
 
 
 def hocr_to_dict(hocr_data):
+    """ 
+    Converts and return the given __`hocr`__ XML data as a dictionary.
+
+    > __`hocr_to_dict` requires the `xmltodict` module to be installed.__    
+    > The module is __only__ imported if it has already been previously installed.
+    """
     result = {}
 
     if not XMLTODICT_INSTALLED:
@@ -726,6 +1023,33 @@ def hocr_to_dict(hocr_data):
 
 
 def osd_to_dict(osd_data):
+    """ 
+    Converts and return the given __`osd`__ data as a dictionary.
+
+    *OSD data sample*:
+    ```
+    Page number: 0
+    Orientation in degrees: 270
+    Rotate: 90
+    Orientation confidence: 71.00
+    Script: Latin
+    Script confidence: nan
+    ```
+
+    *Output*: 
+    ```json
+    {
+        "page_number": 0,
+        "orientation_in_degrees": 270,
+        "rotate": 90,
+        "orientation_confidence": 71.00,
+        "script": "Latin",
+        "script_confidence": "nan"
+    }
+    ```
+
+    *Note*: Dictionary keys are dynamically generated based on the data content.
+    """
     result = {}
 
     def _conv_prop_value(s):
@@ -750,11 +1074,17 @@ def osd_to_dict(osd_data):
 
 
 def _locate_from_cache_file():
+    """
+    Checks if the cache file is present inside the temporary directory.
+    """
     path_file = os.path.join(_get_temp_dir(), _config.pathfile)
     return _read_file(path_file) if os.path.isfile(path_file) else None
 
 
 def _locate_from_registry():
+    """
+    Tries to open and read the Tesseract 'Path' registry key.
+    """
     result = None
 
     try:
@@ -773,8 +1103,10 @@ def _locate_from_registry():
 
 
 def _get_image_lib_name_from_object(obj):
-    # Hackish way to determine from which image lib 'obj' come from
-    # without importing each lib module individually.
+    """
+    Hackish way to determine from which image lib 'obj' come from
+    without importing each lib module individually.
+    """
     result = ()
 
     if obj is not None:
@@ -797,6 +1129,11 @@ def _get_image_lib_name_from_object(obj):
 
 
 def _import_image_module(mn):
+    """
+    Tries to import the corresponding image module and return it.
+
+    Modules won't be re-imported if they have already been cached.
+    """
     global _image_modules
 
     result = None
@@ -846,13 +1183,16 @@ def _import_image_module(mn):
 
 
 def _prepare_image(image, img_lib_name, img_mod, img_save_path):
-    # The procedure is the same for each lib:
-    # - Make a clone of the given image to avoid modifications of the original object
-    # - Remove/replace the alpha channel (if exists)
-    # - Save the cloned image at the given save path location
-    # - Delete the cloned image object
+    """
+    Prepares the given image before being passed to Tesseract.
 
-    # PIL/Pillow
+    The procedure is the same for each lib:
+    - Makes a clone of the given image to avoid modifications of the original object
+    - Removes/replaces the alpha channel (if the image has one)
+    - Saves the cloned image at the given save path location
+    - Deletes the cloned image object
+    """
+    # Pillow
     if img_lib_name == "pil":
         pil_image = image.copy()
 
@@ -866,12 +1206,12 @@ def _prepare_image(image, img_lib_name, img_mod, img_save_path):
                 pil_image.save(img_save_path, "BMP")
             except IOError as e:
                 _warn(
-                    "_prepare_image: (PIL/Pillow) Could not save the image to '{0}'. "
+                    "_prepare_image: (Pillow) Could not save the image to '{0}'. "
                     "I/O Error ({1}): {2}.".format(img_save_path, e.errno, e.strerror)
                 )
         except Exception as e:
             _warn(
-                "_prepare_image: (PIL/Pillow) Unable to split and convert "
+                "_prepare_image: (Pillow) Unable to split and convert "
                 "the image to RGB. Error: {0}.".format(e)
             )
         finally:
@@ -882,7 +1222,7 @@ def _prepare_image(image, img_lib_name, img_mod, img_save_path):
         wx_image = image.Copy()
 
         try:
-            # No idea if 'ClearAlpha' can raise an exception or not
+            # No idea if 'ClearAlpha' can raise an exception
             if wx_image.HasAlpha():
                 wx_image.ClearAlpha()
 
@@ -966,7 +1306,12 @@ def _prepare_image(image, img_lib_name, img_mod, img_save_path):
 
 
 def _proc_exec_wait(command_line, silent=False):
-    result = (None, None, None)
+    """
+    Starts a new process and wait until it ends.
+
+    If 'silent' is set to True, all warning messages will be ignored.
+    """
+    result = (-1, None, None)
     command = None
     proc = None
 
@@ -976,10 +1321,11 @@ def _proc_exec_wait(command_line, silent=False):
 
         command = shlex.split(command)
     except Exception as e:
-        _warn(
-            "_proc_exec_wait: Unable to parse the given command line: {0}\n"
-            "Error: {1}.".format(command_line, e)
-        )
+        if not silent:
+            _warn(
+                "_proc_exec_wait: Unable to parse the given command line: {0}\n"
+                "Error: {1}.".format(command_line, e)
+            )
         return result
 
     try:
@@ -1018,7 +1364,13 @@ def _proc_exec_wait(command_line, silent=False):
     return result
 
 
-def _get_temp_dir():
+def _get_temp_dir(use_preserved=True):
+    """
+    Returns the location of the system temporary directory.
+
+    If 'use_preserved' is set to True, the preserved temporary directory will be 
+    used on Linux and macOS.
+    """
     result = tempfile.gettempdir()
 
     if not _platform_windows:
@@ -1031,12 +1383,21 @@ def _get_temp_dir():
 
 
 def _get_temp_file_name():
+    """
+    Returns a random temporary file name with 'TESS_' prefix.
+    """
     tmpfile = tempfile.NamedTemporaryFile(prefix="TESS_")
     h, t = ntpath.split(tmpfile.name)
     return t or ntpath.basename(h)
 
 
 def _read_file(filepath, return_bytes=False):
+    """
+    Reads and return the given file name content.
+
+    If 'return_bytes' is set to True, the returned value will be bytes instead 
+    of an UTF-8 string.
+    """
     result = None
 
     try:
@@ -1057,6 +1418,9 @@ def _read_file(filepath, return_bytes=False):
 
 
 def _remove_file(filepath):
+    """
+    Tries to remove the given file name.
+    """
     result = True
 
     try:
@@ -1070,6 +1434,9 @@ def _remove_file(filepath):
 
 
 def _write_file(filepath, content):
+    """
+    Writes the specified content to the given file name.
+    """
     result = True
 
     try:
@@ -1086,13 +1453,22 @@ def _write_file(filepath, content):
 
 
 def _escape_path(path):
-    # - On Windows encloses the path if it contains space(s)
-    # - On Linux/MacOS prefix any space with a backslash
+    """
+    Escapes the given path.
+
+    - On Windows encloses the path if it contains space(s).
+    - On Linux/macOS prefix any space with a backslash.
+    """
     path = path.strip()
     return '"{0}"'.format(path) if _platform_windows else path.replace(" ", "\ ")
 
 
 def _parse_errors(error_string):
+    """
+    Parse the returned error data string from the Tesseract process.
+
+    Any line that contains the keyword "Error" will be returned.
+    """
     result = error_string
 
     if error_string:
@@ -1108,4 +1484,7 @@ def _parse_errors(error_string):
 
 
 def _warn(msg):
+    """
+    Displays the given warning message using TessyWarning class.
+    """
     warnings.warn(msg, TessyWarning, stacklevel=3)

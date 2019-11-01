@@ -6,8 +6,8 @@ from setuptools import setup
 
 README = ""
 
-if os.path.isfile("README.rst"):
-    with open("README.rst") as f:
+if os.path.isfile("README.md"):
+    with open("README.md") as f:
         README = f.read()
 
 setup(
@@ -19,6 +19,7 @@ setup(
     license="MIT",
     description="A Python wrapper for Tesseract-OCR.",
     long_description=README,
+    long_description_content_type="text/markdown",
     keywords="tesseract",
     packages=["tessy"],
     include_package_data=True,
