@@ -1044,7 +1044,7 @@ def osd_to_dict(osd_data):
         "rotate": 90,
         "orientation_confidence": 71.00,
         "script": "Latin",
-        "script_confidence": "nan"
+        "script_confidence": None
     }
     ```
 
@@ -1159,13 +1159,13 @@ def _import_image_module(mn):
         # Import the 'QImage' module from PyQt5, PyQt4 or PySide
         elif mn == "qt":
             try:
-                result = importlib.import_module("PyQt5.QtGui.QImage")
+                result = importlib.import_module("PyQt5.QtGui").QImage
             except (ImportError, RuntimeError):
                 try:
-                    result = importlib.import_module("PyQt4.QtGui.QImage")
+                    result = importlib.import_module("PyQt4.QtGui").QImage
                 except (ImportError, RuntimeError):
                     try:
-                        result = importlib.import_module("PySide.QtGui.QImage")
+                        result = importlib.import_module("PySide.QtGui").QImage
                     except ImportError:
                         pass
 

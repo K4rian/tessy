@@ -33,7 +33,7 @@ various image file formats.
 ### Prerequisites
 
 - Python 3.4+
-- [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract) 3.0.x+
+- [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract) 3.5.x+
 *(5.0.x+ on Windows recommended)*
 
 
@@ -44,7 +44,7 @@ each supported language.
 
 __>Installation on macOS__ (via [Homebrew](https://brew.sh/))
 
-- Install both Tesseract and training datas:
+- Install both Tesseract and the training data:
 ```
 brew install tesseract
 ```
@@ -55,19 +55,19 @@ The package is generally called `tesseract` or `tesseract-ocr`.
 
 - Install Tesseract:
 ```
-apt-get install tesseract-ocr
+sudo apt-get install tesseract-ocr
 ```
 - Install an additional language:
 ```
-apt-get install tesseract-ocr-<langcode>
+sudo apt-get install tesseract-ocr-<langcode>
 ```
 - *(example)* Install the Finish language:
 ```
-apt-get install tesseract-ocr-fin
+sudo apt-get install tesseract-ocr-fin
 ```
 - You can also install all languages at once by running:
 ```
-apt-get install tesseract-ocr-all
+sudo apt-get install tesseract-ocr-all
 ```
 
 *It is strongly recommended to browse the 
@@ -87,7 +87,6 @@ __>Post-install it is strongly recommended to__:
   installation directory to your `PATH`.
 - Sets the `TESSDATA_PREFIX` environment variable pointing to your `tessdata` directory
 *(`<tesseract_dir>\\tessdata` on Windows, variable on macOS/Linux)*.
-
 
 
 ## Installing tessy
