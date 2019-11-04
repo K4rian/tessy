@@ -12,7 +12,7 @@ various image file formats.
 - No initial dependencies beside [Tesseract](https://github.com/tesseract-ocr/tesseract).
 - Supports input image in `PNG`, `JPG`, `JPEG`, `GIF`, `TIF` and `BMP` format.
 - Supports multiple input images via text file *(.txt)*.
-- Supports image object from: 
+- Supports image objects from: 
   * [Pillow](https://github.com/python-pillow/Pillow) *(Image)*
   * [wxPython](https://github.com/wxWidgets/wxPython) *(wx.Image)*
   * [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download)/
@@ -24,7 +24,7 @@ various image file formats.
 - Supports multiple output format.
 - Can convert any raw output data to `string`, `bytes` or `dict` *(except pdf)*.
 - Works on macOS, Linux and Windows.
-- Well [documented](https://github.com/K4rian/tessy#api).
+- Well [documented](https://github.com/k4rian/tessy#api).
 
 
 ## Installation
@@ -90,14 +90,14 @@ __>Post-install it is strongly recommended to__:
 
 ## Installing tessy
 
-__>Install the [PyPI package]()__:
+__>Install the [PyPI package](https://pypi.org/project/tessy/)__:
 ```
-sudo pip install (TODO)
+sudo pip install tessy
 ```
 
 __>or clone the repository__:
 ```
-git clone https://github.com/K4rian/tessy
+git clone https://github.com/k4rian/tessy
 ```
 
 
@@ -119,7 +119,7 @@ print(text)
 ```
 
 Check out the __[examples](/examples)__ for more advanced usages and the 
-__[documentation](https://github.com/K4rian/tessy#api)__ to see what features are available.
+__[documentation](https://github.com/k4rian/tessy#api)__ to see what features are available.
 # API
 #### Table of Contents
 - [tessy.**Lang**](#tessylang) 
@@ -400,7 +400,7 @@ Sets the `Tesseract` command.
 
 > If __`write_cache`__ is set to `True`, the given command will be stored in a special 
 > file located in the temporary directory to helps `tessy` to locate Tesseract when the 
-> __[init](https://github.com/K4rian/tessy#tessyinit)__ function is called.
+> __[init](https://github.com/k4rian/tessy#tessyinit)__ function is called.
 ## tessy.data_dir()
 Returns the `Tesseract` data directory.
 
@@ -416,8 +416,8 @@ Sets the location of the `Tesseract` data directory.
 Returns the content separator. 
 
 > The content separator is used as delimiter when multiple string are joined  
-> in the functions __[image_to_string](https://github.com/K4rian/tessy#tessyimage_to_stringimage-output_formattxt-langnone-confignone)__ and
-> __[image_to_data](https://github.com/K4rian/tessy#tessyimage_to_dataimage-output_formattxt-data_outputstr-langnone-confignone)__.
+> in the functions __[image_to_string](https://github.com/k4rian/tessy#tessyimage_to_stringimage-output_formattxt-langnone-confignone)__ and
+> __[image_to_data](https://github.com/k4rian/tessy#tessyimage_to_dataimage-output_formattxt-data_outputstr-langnone-confignone)__.
 
 *Default:* `||||`
 ## tessy.set_content_sep(sep)
@@ -438,17 +438,17 @@ configure(command="tesseract", content_sep="~")
 configure(command=("tesseract", True), data_dir=("/home/tess/data", True))
 ```
 
-See __[set_command](https://github.com/K4rian/tessy#tessyset_commandcmd-check_runnablefalse-write_cachefalse)__, __[set_data_dir](https://github.com/K4rian/tessy#tessyset_data_dirdatadir-update_envtrue)__ 
-and __[set_content_sep](https://github.com/K4rian/tessy#tessyset_content_sepsep)__ functions documentation for 
+See __[set_command](https://github.com/k4rian/tessy#tessyset_commandcmd-check_runnablefalse-write_cachefalse)__, __[set_data_dir](https://github.com/k4rian/tessy#tessyset_data_dirdatadir-update_envtrue)__ 
+and __[set_content_sep](https://github.com/k4rian/tessy#tessyset_content_sepsep)__ functions documentation for 
 more details about the parameters.
 ## tessy.init()
 Inits the module by performing some verifications.
 
 - Checks if the `Tesseract` command is valid by trying to start a new process using
 the `runnable` function. If the command fails, it will try to locate the `Tesseract` 
-binary by calling the __[locate](https://github.com/K4rian/tessy#tessylocate)__ function.
+binary by calling the __[locate](https://github.com/k4rian/tessy#tessylocate)__ function.
 - Checks if the `Tesseract` data directory has been set by calling the 
-__[locate_data](https://github.com/K4rian/tessy#tessylocate_data)__ function.
+__[locate_data](https://github.com/k4rian/tessy#tessylocate_data)__ function.
 ## tessy.image_to_file(image, output_filename_base=None, output_format='txt', lang=None, config=None)
 Extracts any text from the given image and return a list containing a unique file 
 name for each specified format.
@@ -499,7 +499,7 @@ name for each specified format.
 > If __`lang`__ is set to `None`, `Tesseract` will process the image using the 
 > English language value (`"eng"`) as default.
 >
-> __Check the [TessyLang](https://github.com/K4rian/tessy#tessylang) class documentation to get the list
+> __Check the [TessyLang](https://github.com/k4rian/tessy#tessylang) class documentation to get the list
 > of all supported languages__.
 
 > __`config`__ may contain extra parameter(s) added to the `Tesseract` command.
@@ -518,7 +518,7 @@ data for each specified format.
 >
 > *Default:* `DataOutput.STRING`
 
-See __[image_to_file](https://github.com/K4rian/tessy#tessyimage_to_fileimage-output_filename_basenone-output_formattxt-langnone-confignone)__ documentation for more details about 
+See __[image_to_file](https://github.com/k4rian/tessy#tessyimage_to_fileimage-output_filename_basenone-output_formattxt-langnone-confignone)__ documentation for more details about 
 __`image`__, __`output_format`__,  __`lang`__ and __`config`__ parameters.
 
 *Note*: `pdf` output format isn't supported by this function.
@@ -526,7 +526,7 @@ __`image`__, __`output_format`__,  __`lang`__ and __`config`__ parameters.
 Extracts any text from the given image and return the data as string for each 
 specified format.
 
-See __[image_to_file](https://github.com/K4rian/tessy#tessyimage_to_fileimage-output_filename_basenone-output_formattxt-langnone-confignone)__ documentation for more details about 
+See __[image_to_file](https://github.com/k4rian/tessy#tessyimage_to_fileimage-output_filename_basenone-output_formattxt-langnone-confignone)__ documentation for more details about 
 __`image`__, __`output_format`__,  __`lang`__ and __`config`__ parameters.
 
 *Note*: `pdf` output format isn't supported by this function.
@@ -562,7 +562,7 @@ Run Tesseract with the given parameters and return the output as tuple.
 ## tessy.runnable()
 Returns `True` if the Tesseract's process can be started.
 ## tessy.start(parameters=None, silent=False)
-Alias of __[run](https://github.com/K4rian/tessy#tessyrunparametersnone-silentfalse)__
+Alias of __[run](https://github.com/k4rian/tessy#tessyrunparametersnone-silentfalse)__
 ## tessy.tesseract_version()
 Returns the `LooseVersion` representation of Tesseract's version.
 ## tessy.clear_cache()

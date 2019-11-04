@@ -1315,11 +1315,11 @@ def _proc_exec_wait(command_line, silent=False):
     command = None
     proc = None
 
-    try:
-        if _platform_windows:
-            command = command_line.replace("\\", "/")
+    if _platform_windows:
+        command_line = command_line.replace("\\", "/")
 
-        command = shlex.split(command)
+    try:
+        command = shlex.split(command_line)
     except Exception as e:
         if not silent:
             _warn(

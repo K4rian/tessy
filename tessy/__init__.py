@@ -13,7 +13,7 @@ various image file formats.
 - No initial dependencies beside [Tesseract](https://github.com/tesseract-ocr/tesseract).
 - Supports input image in `PNG`, `JPG`, `JPEG`, `GIF`, `TIF` and `BMP` format.
 - Supports multiple input images via text file *(.txt)*.
-- Supports image object from: 
+- Supports image objects from: 
   * [Pillow](https://github.com/python-pillow/Pillow) *(Image)*
   * [wxPython](https://github.com/wxWidgets/wxPython) *(wx.Image)*
   * [PyQt4](https://www.riverbankcomputing.com/software/pyqt/download)/
@@ -91,9 +91,9 @@ __>Post-install it is strongly recommended to__:
 
 ## Installing tessy
 
-__>Install the [PyPI package]()__:
+__>Install the [PyPI package](https://pypi.org/project/tessy/)__:
 ```
-sudo pip install (TODO)
+sudo pip install tessy
 ```
 
 __>or clone the repository__:
@@ -150,4 +150,4 @@ from ._tessy import (
     osd_to_dict,
 )
 
-VERSION = "0.5"
+VERSION = "0.5.1"

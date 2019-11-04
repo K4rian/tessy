@@ -20,7 +20,7 @@ setup(
     description="A Python wrapper for Tesseract-OCR.",
     long_description=README,
     long_description_content_type="text/markdown",
-    keywords="tesseract",
+    keywords="python tesseract ocr",
     packages=["tessy"],
     include_package_data=True,
     classifiers=[
