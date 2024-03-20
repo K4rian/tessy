@@ -27,7 +27,7 @@ setup(
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
         "Operating System :: Microsoft :: Windows",
-        "Operating System :: POSIX :: Linux,
+        "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.12",
