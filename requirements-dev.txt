@@ -1,6 +1,7 @@
-opencv-python>=3.4.0.14
-Pillow>=5.0.0
-PyQt5>=5.10
-wxPython>=4.0.0
-xmltodict>=0.12.0
-black>=19.3b0
+opencv-python>=4.9.0.80
+Pillow>=10.2.0
+PyQt5>=5.15.10
+wxPython>=4.2.1
+xmltodict>=0.13.0
+black>=24.3.0
+setuptools>=69.2.0

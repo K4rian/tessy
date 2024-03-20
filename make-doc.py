@@ -1,8 +1,8 @@
 """
 This script is used to generate the single-page documentation of a given module.
 
-It hasn't been designed to be extensible nor pretty but only to fulfil some needs, use it 
-at your own risk.
+It hasn't been designed to be extensible or pretty, but only to fulfil some needs. 
+Use it at your own risk.
 
 The output format is heavily inspired by some of BoppreH's projects (https://github.com/boppreh)
 """
@@ -11,7 +11,6 @@ import inspect
 import re
 
 
-# TODO: Make this script invokable to be able to set all config variables dynamically
 Config = type(
     "Config",
     (object,),
@@ -20,6 +19,8 @@ Config = type(
         "OUTPUT_FILE": "README.md",
         "IGNORED_MEMBERS": ["VERSION"],
         "DEPOT_URL": "https://github.com/k4rian/tessy",
+        "LICENSE_NAME": "MIT",
+        "LICENSE_LINK": "LICENSE",
     },
 )
 
@@ -28,11 +29,13 @@ Template = type(
     (object,),
     {
         "BODY": (
-            "{module_doc}\n"
-            "# API\n"
-            "#### Table of Contents\n"
+            "{module_doc}\n\n"
+            "## API\n"
+            "### Table of Contents\n"
             "{members_toc}\n\n"
-            "{members_info}"
+            "{members_info}\n\n"
+            "## License\n"
+            "[{license_name}]({license_link})"
         ),
         "MEMBER_TOC": "- [{parent_name}.**{name}**](#{link}) {alias}",
         "MEMBER_INFO": "## {name}{sign}\n{doc}\n",
@@ -66,7 +69,7 @@ MemberInfo = type(
 FORMATDATA = [
     # Replaces @@$ with member link
     {
-        "REG_FINDALL": "\(@@\$(.*?)\)",
+        "REG_FINDALL": "\\(@@\\$(.*?)\\)",
         "FMT_REPLACE_OLD": "@@${0}",
         "FMT_REPLACE_NEW": "{depot_url}#{link}",
         "FMT_REPLACE_USE_MEMBER_ATTRS": True,
@@ -260,6 +263,8 @@ def build():
         module_doc=module_doc,
         members_toc="\n".join(build_tocs),
         members_info="\n".join(build_infos),
+        license_name=Config.LICENSE_NAME,
+        license_link=Config.LICENSE_LINK,
     )
 
     with open(Config.OUTPUT_FILE, "w") as f:

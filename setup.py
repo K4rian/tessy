@@ -27,10 +27,10 @@ setup(
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
         "Operating System :: Microsoft :: Windows",
-        "Operating System :: Unix",
-        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux,
+        "Operating System :: MacOS",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Utilities",
     ],
 )

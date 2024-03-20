@@ -2,14 +2,16 @@
 tessy
 =====
 
-__tessy__ is a Python wrapper for 
-[Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract), 
-an optical character recognition engine used to *detect and extract* text data from 
-various image file formats.
+__tessy__ is a Python wrapper for [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract), 
+an optical character recognition engine used to *detect and extract* text data from various image file formats.
 
+---
+<p align="center">
+  <a href="#features">Features</a> &bull; <a href="#prerequisites">Prerequisites</a> &bull; <a href="#installing-tesseract">Installing Tesseract</a><br> 
+  <a href="#installing-tessy">Installing tessy</a> &bull; <a href="#basic-usage">Basic Usage</a> &bull; <a href="#api">Documentation</a> &bull; <a href="#license">License</a>
+</p>
 
 ## Features
-
 - No initial dependencies beside [Tesseract](https://github.com/tesseract-ocr/tesseract).
 - Supports input image in `PNG`, `JPG`, `JPEG`, `GIF`, `TIF` and `BMP` format.
 - Supports multiple input images via text file *(.txt)*.
@@ -27,80 +29,63 @@ various image file formats.
 - Works on macOS, Linux and Windows.
 - Well [documented](@@#api).
 
-
-## Installation
-
-### Prerequisites
-
-- Python 3.4+
-- [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract) 3.5.x+
-*(5.0.x+ on Windows recommended)*
-
+## Prerequisites
+- Python 3.12+
+- [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract) 5.2.x+
+*(5.3.x+ on Windows recommended)*
 
 ## Installing Tesseract
+Tesseract comes in two parts: The engine itself and the training data for each supported language.
 
-Tesseract comes in two parts: The engine itself and the training data for
-each supported language.
-
-__>Installation on macOS__ (via [Homebrew](https://brew.sh/))
-
+### Installation on macOS
 - Install both Tesseract and the training data:
-```
+```bash
 brew install tesseract
 ```
 
-__>Installation on Linux__ (Debian/Ubuntu)
-
+### Installation on Linux (Debian/Ubuntu)
 The package is generally called `tesseract` or `tesseract-ocr`.
 
 - Install Tesseract:
-```
-sudo apt-get install tesseract-ocr
+```bash
+sudo apt install tesseract-ocr
 ```
 - Install an additional language:
-```
-sudo apt-get install tesseract-ocr-<langcode>
+```bash
+sudo apt install tesseract-ocr-{LANG_CODE}
 ```
 - *(example)* Install the Finish language:
+```bash
+sudo apt install tesseract-ocr-fin
 ```
-sudo apt-get install tesseract-ocr-fin
-```
-- You can also install all languages at once by running:
-```
-sudo apt-get install tesseract-ocr-all
+- All languages can be installed at once:
+```bash
+sudo apt install tesseract-ocr-all
 ```
 
-*It is strongly recommended to browse the 
-[Tesseract-OCR's wiki](https://github.com/tesseract-ocr/tesseract/wiki) 
+*It is highly recommended to browse the [Tesseract-OCR's wiki](https://github.com/tesseract-ocr/tesseract/wiki) 
 to get more informations about other Linux distributions and languages installation.*
 
-__>Installation on Windows__
-
-Both 32bit and 64bit installers for Windows are available from 
-[Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki)
+### Installation on Windows
+Installers for Windows are available on [Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) 
 *(version 5.0.x+ recommended)*.
 
-
-__>Post-install it is strongly recommended to__:
-- Makes sure the `tesseract` command is invokable.
-  - This is generally not the case on Windows where you have to add the tesseract
-  installation directory to your `PATH`.
-- Sets the `TESSDATA_PREFIX` environment variable pointing to your `tessdata` directory
+### Post-install
+After the installation, it is strongly recommended to:
+- Make sure the `tesseract` command is invokable.
+  - This is generally not the case on Windows where you have to add the tesseract installation directory to your `PATH`.
+- Set the `TESSDATA_PREFIX` environment variable pointing to your `tessdata` directory
 *(`<tesseract_dir>\\tessdata` on Windows, variable on macOS/Linux)*.
 
-
 ## Installing tessy
-
-__>Install the [PyPI package](https://pypi.org/project/tessy/)__:
-```
+__Install the [PyPI package](https://pypi.org/project/tessy/)__:
+```bash
 sudo pip install tessy
 ```
-
-__>or clone the repository__:
-```
+__or clone the repository__:
+```bash
 git clone @@
 ```
-
 
 ## Basic Usage
 ```python
@@ -119,8 +104,7 @@ text = tessy.image_to_string(image)
 print(text)
 ```
 
-Check out the __[examples](/examples)__ for more advanced usages and the 
-__[documentation](@@#api)__ to see what features are available.
+Check out the __[examples](examples/README.md)__ for more advanced usages and the __[documentation](@@#api)__ to see what features are available.
 """
 from ._tessy import (
     Lang,
@@ -150,4 +134,4 @@ from ._tessy import (
     osd_to_dict,
 )
 
-VERSION = "0.5.1"
+VERSION = "0.5.2"

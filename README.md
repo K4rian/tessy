@@ -1,14 +1,16 @@
 tessy
 =====
 
-__tessy__ is a Python wrapper for 
-[Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract), 
-an optical character recognition engine used to *detect and extract* text data from 
-various image file formats.
+__tessy__ is a Python wrapper for [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract), 
+an optical character recognition engine used to *detect and extract* text data from various image file formats.
 
+---
+<p align="center">
+  <a href="#features">Features</a> &bull; <a href="#prerequisites">Prerequisites</a> &bull; <a href="#installing-tesseract">Installing Tesseract</a><br> 
+  <a href="#installing-tessy">Installing tessy</a> &bull; <a href="#basic-usage">Basic Usage</a> &bull; <a href="#api">Documentation</a> &bull; <a href="#license">License</a>
+</p>
 
 ## Features
-
 - No initial dependencies beside [Tesseract](https://github.com/tesseract-ocr/tesseract).
 - Supports input image in `PNG`, `JPG`, `JPEG`, `GIF`, `TIF` and `BMP` format.
 - Supports multiple input images via text file *(.txt)*.
@@ -26,80 +28,63 @@ various image file formats.
 - Works on macOS, Linux and Windows.
 - Well [documented](https://github.com/k4rian/tessy#api).
 
-
-## Installation
-
-### Prerequisites
-
-- Python 3.4+
-- [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract) 3.5.x+
-*(5.0.x+ on Windows recommended)*
-
+## Prerequisites
+- Python 3.12+
+- [Google's Tesseract-OCR](https://github.com/tesseract-ocr/tesseract) 5.2.x+
+*(5.3.x+ on Windows recommended)*
 
 ## Installing Tesseract
+Tesseract comes in two parts: The engine itself and the training data for each supported language.
 
-Tesseract comes in two parts: The engine itself and the training data for
-each supported language.
-
-__>Installation on macOS__ (via [Homebrew](https://brew.sh/))
-
+### Installation on macOS
 - Install both Tesseract and the training data:
-```
+```bash
 brew install tesseract
 ```
 
-__>Installation on Linux__ (Debian/Ubuntu)
-
+### Installation on Linux (Debian/Ubuntu)
 The package is generally called `tesseract` or `tesseract-ocr`.
 
 - Install Tesseract:
-```
-sudo apt-get install tesseract-ocr
+```bash
+sudo apt install tesseract-ocr
 ```
 - Install an additional language:
-```
-sudo apt-get install tesseract-ocr-<langcode>
+```bash
+sudo apt install tesseract-ocr-{LANG_CODE}
 ```
 - *(example)* Install the Finish language:
+```bash
+sudo apt install tesseract-ocr-fin
 ```
-sudo apt-get install tesseract-ocr-fin
-```
-- You can also install all languages at once by running:
-```
-sudo apt-get install tesseract-ocr-all
+- All languages can be installed at once:
+```bash
+sudo apt install tesseract-ocr-all
 ```
 
-*It is strongly recommended to browse the 
-[Tesseract-OCR's wiki](https://github.com/tesseract-ocr/tesseract/wiki) 
+*It is highly recommended to browse the [Tesseract-OCR's wiki](https://github.com/tesseract-ocr/tesseract/wiki) 
 to get more informations about other Linux distributions and languages installation.*
 
-__>Installation on Windows__
-
-Both 32bit and 64bit installers for Windows are available from 
-[Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki)
+### Installation on Windows
+Installers for Windows are available on [Tesseract at UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) 
 *(version 5.0.x+ recommended)*.
 
-
-__>Post-install it is strongly recommended to__:
-- Makes sure the `tesseract` command is invokable.
-  - This is generally not the case on Windows where you have to add the tesseract
-  installation directory to your `PATH`.
-- Sets the `TESSDATA_PREFIX` environment variable pointing to your `tessdata` directory
+### Post-install
+After the installation, it is strongly recommended to:
+- Make sure the `tesseract` command is invokable.
+  - This is generally not the case on Windows where you have to add the tesseract installation directory to your `PATH`.
+- Set the `TESSDATA_PREFIX` environment variable pointing to your `tessdata` directory
 *(`<tesseract_dir>\tessdata` on Windows, variable on macOS/Linux)*.
 
-
 ## Installing tessy
-
-__>Install the [PyPI package](https://pypi.org/project/tessy/)__:
-```
+__Install the [PyPI package](https://pypi.org/project/tessy/)__:
+```bash
 sudo pip install tessy
 ```
-
-__>or clone the repository__:
-```
+__or clone the repository__:
+```bash
 git clone https://github.com/k4rian/tessy
 ```
-
 
 ## Basic Usage
 ```python
@@ -118,10 +103,10 @@ text = tessy.image_to_string(image)
 print(text)
 ```
 
-Check out the __[examples](/examples)__ for more advanced usages and the 
-__[documentation](https://github.com/k4rian/tessy#api)__ to see what features are available.
-# API
-#### Table of Contents
+Check out the __[examples](examples/README.md)__ for more advanced usages and the __[documentation](https://github.com/k4rian/tessy#api)__ to see what features are available.
+
+## API
+### Table of Contents
 - [tessy.**Lang**](#tessylang) 
 - [tessy.**command**](#tessycommand) 
 - [tessy.**set_command**](#tessyset_commandcmd-check_runnablefalse-write_cachefalse) 
@@ -156,8 +141,7 @@ Returns a key-value pair list of all available languages.
 ### TessyLang.contains(value)
 Returns `True` if the given value equals any existing language value.
 ### TessyLang.join(*args)
-Returns an string in which each given languages have been joined by 
-the `+` separator.
+Returns a string in which each given languages have been joined by the `+` separator.
 ### TessyLang.print_all()
 Prints the key-value pairs of all available languages in the console.
 ### TessyLang.AFRIKAANS
@@ -415,7 +399,7 @@ Sets the location of the `Tesseract` data directory.
 ## tessy.content_sep()
 Returns the content separator. 
 
-> The content separator is used as delimiter when multiple string are joined  
+> The content separator is used as delimiter when multiple string are joined 
 > in the functions __[image_to_string](https://github.com/k4rian/tessy#tessyimage_to_stringimage-output_formattxt-langnone-confignone)__ and
 > __[image_to_data](https://github.com/k4rian/tessy#tessyimage_to_dataimage-output_formattxt-data_outputstr-langnone-confignone)__.
 
@@ -454,29 +438,29 @@ Extracts any text from the given image and return a list containing a unique fil
 name for each specified format.
 
 > __`image`__ can be either:
-> - an `string` containing the absolute path to an image or a text file containing
+> - a `string` containing the absolute path to an image or a text file containing
 > multiple absolute image paths.
 > - an Pillow `Image`.
 > - an wxPython `Image`.
 > - an PyQt4/PyQt5/PySide `QImage`.
 > - an OpenCV `NumPy ndarray`.
 
-> __`output_filename_base`__ may contain the file name __without extension__ used 
+> __`output_filename_base`__ holds the file name (__without extension__) used 
 > as reference for any output file generated by Tesseract.
 >
-> *e.g.*: If `/home/tess/myimage` is given, the `/home/tess` directory may contain 
+> *e.g.*: If `/home/tess/myimage` is given, the `/home/tess` directory will contain 
 > the files `myimage.txt`, `myimage.tsv`, etc.
 >
 > If __`output_filename_base`__ is set to `None`, all file(s) will be using the same 
 > random name as reference and will be saved in the OS's temporary directory.
 
-> __`output_format`__ contains one or more output format(s) who will be processed by 
+> __`output_format`__ contains one or more output format(s) which will be processed by 
 > `Tesseract`.
 >
 > *Supported formats*: `txt`, `box`, `pdf`, `hocr`, `tsv`, `osd`
 >
 > __`output_format`__ can be either:
-> - an `string` containing one or more format(s) delimited by a comma `,`
+> - a `string` containing one or more format(s) delimited by a comma `,`
 > - a `list`/`tuple` of `string`
 >
 > *e.g.*: `"txt"`, `"txt, tsv, box"`, `("pdf", "hocr")`, `["txt", "box"]`
@@ -485,10 +469,10 @@ name for each specified format.
 > format and, thus, return a single file even if multiple formats are provided
 > in `output_format`__.
 
-> __`lang`__ may contain one or more supported language(s).
+> __`lang`__ contains one or more supported language(s).
 >
 > __`lang`__ can be either:
-> - an `string` containing one or more languages delimited by a plus sign `+`
+> - a `string` containing one or more languages delimited by a plus sign `+`
 > - a `list`/`tuple` of `string`
 > - a `TessyLang` enum
 > - a `list`/`tuple` of `TessyLang` enums
@@ -502,9 +486,9 @@ name for each specified format.
 > __Check the [TessyLang](https://github.com/k4rian/tessy#tessylang) class documentation to get the list
 > of all supported languages__.
 
-> __`config`__ may contain extra parameter(s) added to the `Tesseract` command.
+> __`config`__ holds extra parameter(s) added to the `Tesseract` command.
 >
-> __`config`__ must be an string and each parameter must be delimited by a space.
+> __`config`__ must be a string and each parameter delimited by a space.
 >
 > *e.g.*: `"--oem 0 --psm 6"`
 ## tessy.image_to_data(image, output_format='txt', data_output='str', lang=None, config=None)
@@ -534,11 +518,11 @@ __`image`__, __`output_format`__,  __`lang`__ and __`config`__ parameters.
 Tries to locate the Tesseract binary and returns its path if found.
 
 - Checks if the cache file (`.TESSPATH`) is present inside the temporary directory.   
-If the file is found, its content is read and returned as an string.
+If the file is found, its content is read and returned as a string.
 - (__Windows only__) Tries to read the Tesseract installation directory in the
 registry. The registry entry only exists if Tesseract has been previously installed
 using the Windows precompiled setups. If the Tesseract executable is located, its
-path is returned as an string.
+path is returned as a string.
 ## tessy.locate_data()
 Tries to locate the Tesseract data directory and returns its path if found.
 
@@ -547,7 +531,7 @@ its value.
 - Tries to read the Tesseract installation directory in the
 registry. The registry entry only exists if Tesseract has been previously installed
 using any Windows precompiled setups. If the Tesseract executable is located, its
-path is returned as an string.
+path is returned as a string.
 ## tessy.run(parameters=None, silent=False)
 Run Tesseract with the given parameters and return the output as tuple.
 
@@ -663,3 +647,6 @@ Script confidence: nan
 ```
 
 *Note*: Dictionary keys are dynamically generated based on the data content.
+
+## License
+[MIT](LICENSE)

@@ -20,8 +20,8 @@ binary isn't in the PATH by default.
 
 So, if you are in this case, you can do something like that:
 """
-if platform.system().lower() == "windows":
-    tessy.init()
+# if platform.system().lower() == "windows":
+#     tessy.init()
 
 
 """
@@ -37,23 +37,23 @@ If, for some reason, you need to set the Tesseract binary path or/and the
 "tessdata" folder location manually, you have multiple ways to achieve this:
 """
 # Call the "set_command" function to set the binary path
-tessy.set_command("path/to/tesseract")
+#tessy.set_command("path/to/tesseract")
 # On Windows it would be something like that:
-tessy.set_command("C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
+#tessy.set_command("C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
 
 # Call the "set_data_dir" function to set the "tessdata" folder location
-tessy.set_data_dir("path/to/tessdata")
+#tessy.set_data_dir("path/to/tessdata")
 
 # Or use the "configure" function to set one or both of them at the same time:
-tessy.configure(command="path/to/tesseract", data_dir="path/to/tessdata")
+#tessy.configure(command="path/to/tesseract", data_dir="path/to/tessdata")
 
 # You can also pass the "tessdata" folder path using the "config" parameter of any
 # "image_to_#" function, like so:
-text = tessy.image_to_string([...], config="--tessdata-dir <PATH>")
+#text = tessy.image_to_string([...], config="--tessdata-dir <PATH>")
 
 # If you wish to save the tesseract binary path for further use, you have to pass a
 # extra parameter to the "set_command" function:
-tessy.set_command("path/to/tesseract", write_cache=True)
+#tessy.set_command("path/to/tesseract", write_cache=True)
 
 
 """
