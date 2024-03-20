@@ -18,7 +18,7 @@ Config = type(
         "TARGET_MODULE": importlib.import_module("tessy"),
         "OUTPUT_FILE": "README.md",
         "IGNORED_MEMBERS": ["VERSION"],
-        "DEPOT_URL": "https://github.com/k4rian/tessy",
+        "DEPOT_URL": "https://github.com/K4rian/tessy",
         "LICENSE_NAME": "MIT",
         "LICENSE_LINK": "LICENSE",
     },
